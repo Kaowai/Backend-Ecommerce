@@ -6,6 +6,7 @@ import express, { Application, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import "./dbs/init.mongodb";
+import router from "./routes/index";
 
 const app: Application = express();
 
@@ -14,11 +15,8 @@ app.use(morgan("combined"));
 app.use(helmet());
 app.use(compression());
 
-// Routes
-app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({ message: "Hello, World!" });
-});
-
+// init routes
+app.use(router);
 // Error handling can be added here
 
 export default app;
