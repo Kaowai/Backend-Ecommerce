@@ -1,7 +1,6 @@
-const app = require("./src/app");
-const {
-  app: { port },
-} = require("./src/configs/config.mongodb");
+import app from "./src/app";
+import config from "./src/configs/config.mongodb";
+const { port } = config.app;
 const PORT = port || 3000;
 
 const server = app.listen(PORT, () => {

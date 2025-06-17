@@ -1,6 +1,21 @@
 "use strict";
 
-const dev = {
+interface AppConfig {
+  port: number | string;
+}
+
+interface DbConfig {
+  host: string;
+  port: number | string;
+  name: string;
+}
+
+interface EnvConfig {
+  app: AppConfig;
+  db: DbConfig;
+}
+
+const dev: EnvConfig = {
   app: {
     port: process.env.DEV_APP_PORT || 3000,
   },
@@ -11,7 +26,7 @@ const dev = {
   },
 };
 
-const prod = {
+const prod: EnvConfig = {
   app: {
     port: process.env.PROD_APP_PORT || 3001,
   },
@@ -22,7 +37,7 @@ const prod = {
   },
 };
 
-const config = { dev, prod };
-const env = process.env.NODE_ENV || "dev";
+const config: Record<string, EnvConfig> = { dev, prod };
+const env = (process.env.NODE_ENV as keyof typeof config) || "dev";
 
-module.exports = config[env];
+export default config[env];
