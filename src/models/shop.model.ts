@@ -1,16 +1,21 @@
-import mongoose, { model, Schema } from "mongoose";
-import { IShop } from "../interfaces/IUser";
+import { model, Schema } from "mongoose";
+import { COLLECTION, DOCUMENT } from "../consts/consts";
 
-const DOCUMENT_NAME = "Shop";
-const COLLECTION_NAME = "Shops";
+export interface IShop extends Document {
+  name: string;
+  email: string;
+  mobile: string;
+  password: string;
+  status: String;
+  verify: boolean;
+  roles: Array<string>;
+}
 
-// Declare the Schema of the Mongo model
 var shopSchema = new Schema<IShop>(
   {
     name: {
       type: Schema.Types.String,
       required: true,
-      unique: true,
       index: true,
     },
     email: {
@@ -38,9 +43,9 @@ var shopSchema = new Schema<IShop>(
   },
   {
     timestamps: true,
-    collection: COLLECTION_NAME,
+    collection: COLLECTION.SHOP,
   }
 );
 
-const ShopModel = model<IShop>(DOCUMENT_NAME, shopSchema);
+const ShopModel = model<IShop>(DOCUMENT.SHOP, shopSchema);
 export default ShopModel;
