@@ -1,14 +1,84 @@
 import ShopModel from "../models/shop.model";
-
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { createKeyToken } from "./keyToken.service";
+import { createTokenPair } from "../auth/authUtils";
+import { ROLE_SHOP } from "../consts/consts";
+import { getInfoData } from "../utils";
 interface ISignup {
   name: string;
   email: string;
   password: string;
 }
 
-const signUp = async ({ name, email, password }: ISignup) => {
+const signUpService = async ({ name, email, password }: ISignup) => {
   try {
-    const hodelShop = await ShopModel.findOne({ email }).lean();
+    const holderShop = await ShopModel.findOne({ email }).lean();
+
+    if (holderShop) {
+      return {
+        code: "xxxx",
+        message: "Shop is already registered",
+      };
+    }
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const newShop = await ShopModel.create({
+      name,
+      email,
+      password: passwordHash,
+      roles: [ROLE_SHOP.SHOP],
+    });
+
+    if (!newShop) {
+      return {
+        code: "CREATE_FAILED",
+        message: "Failed to create shop",
+      };
+    }
+
+    // create privateKey, publicKey
+    const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 4096,
+      publicKeyEncoding: {
+        type: "pkcs1",
+        format: "pem",
+      },
+      privateKeyEncoding: {
+        type: "pkcs1",
+        format: "pem",
+      },
+    });
+
+    console.log({ privateKey, publicKey });
+
+    const publicKeyString = await createKeyToken(
+      newShop._id.toString(),
+      publicKey
+    );
+
+    if (!publicKeyString) {
+      return {
+        code: "KEY_ERROR",
+        message: "Create publickey error",
+      };
+    }
+    const publicKeyObject = crypto.createPublicKey(publicKeyString as string);
+
+    const payload = { userId: newShop._id.toString(), email };
+
+    const token = await createTokenPair(payload, publicKeyObject, privateKey);
+
+    return {
+      code: 201,
+      metadata: {
+        shop: getInfoData({
+          fields: ["_id", "name", "email"] as any,
+          object: newShop,
+        }),
+        token,
+      },
+    };
   } catch (err) {
     return {
       code: "xxx",
@@ -17,3 +87,5 @@ const signUp = async ({ name, email, password }: ISignup) => {
     };
   }
 };
+
+export { signUpService };
